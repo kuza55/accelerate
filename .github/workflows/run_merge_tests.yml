@@ -30,67 +30,67 @@ jobs:
           pip install pytest-reportlog tabulate  
 
       - name: Run CLI tests (use make cli)
+        working-directory: accelerate
         run: |
           source activate accelerate
-          cd accelerate
-          echo "Hello world!"
+          make test_cli
           
-      # - name: Run test on GPUs
-      #   if: always()
-      #   run: |
-      #     source activate accelerate
-      #     cd accelerate
-      #     make test
-      # - name: Run examples on GPUs
-      #   if: always()
-      #   run: |
-      #     source activate accelerate
-      #     cd accelerate
-      #     pip uninstall comet_ml -y
-      #     make test_examples
+      - name: Run test on GPUs
+        if: always()
+        working-directory: accelerate
+        run: |
+          source activate accelerate
+          make test
+      - name: Run examples on GPUs
+        if: always()
+        working-directory: accelerate
+        run: |
+          source activate accelerate
+          pip uninstall comet_ml -y
+          make test_examples
 
-      # - name: Generate Report
-      #   if: always()
-      #   run: |
-      #     pip install tabulate
-      #     cd accelerate
-      #     python utils/log_reports.py >> $GITHUB_STEP_SUMMARY
+      - name: Generate Report
+        if: always()
+        working-directory: accelerate
+        run: |
+          pip install tabulate
+          python utils/log_reports.py >> $GITHUB_STEP_SUMMARY
 
-  # run_all_tests_multi_gpu:
-  #   runs-on: [self-hosted, docker-gpu, multi-gpu]
-  #   container:
-  #     image: huggingface/accelerate-gpu:latest
-  #     options: --gpus all --shm-size "16gb"
-  #   defaults:
-  #     run:
-  #       working-directory: accelerate/
-  #       shell: bash
-  #   steps:
-  #     - name: Install accelerate
-  #       run: 
-  #         source activate accelerate;
-  #         git clone -b ${{ github.sha }} https://github.com/huggingface/accelerate
-  #         cd accelerate
-  #         pip install -e .[testing, test_trackers] -U;
-  #         pip install pytest-reportlog tabulate  
+  run_all_tests_multi_gpu:
+    runs-on: [self-hosted, docker-gpu, multi-gpu]
+    container:
+      image: huggingface/accelerate-gpu:latest
+      options: --gpus all --shm-size "16gb"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install accelerate
+        run: 
+          source activate accelerate;
+          git clone https://github.com/huggingface/accelerate
+          cd accelerate
+          git checkout ${{ github.sha }};
+          pip install -e .[testing,test_trackers] -U;
+          pip install pytest-reportlog tabulate  
 
-  #     - name: Run test on GPUs
-  #       run: |
-  #         source activate accelerate
-  #         cd accelerate
-  #         make test
+      - name: Run test on GPUs
+        working-directory: accelerate
+        run: |
+          source activate accelerate
+          make test
 
-  #     - name: Run examples on GPUs
-  #       if: always()
-  #       run: |
-  #         source activate accelerate
-  #         cd accelerate
-  #         pip uninstall comet_ml -y
-  #         make test_examples
+      - name: Run examples on GPUs
+        working-directory: accelerate
+        if: always()
+        run: |
+          source activate accelerate
+          pip uninstall comet_ml -y
+          make test_examples
 
-  #     - name: Generate Report
-  #       if: always()
-  #       run: |
-  #         source activate accelerate
-  #         cd accelerate
-  #         python utils/log_reports.py >> $GITHUB_STEP_SUMMARY
+      - name: Generate Report
+        working-directory: accelerate
+        if: always()
+        run: |
+          source activate accelerate
+          python utils/log_reports.py >> $GITHUB_STEP_SUMMARY
